@@ -25,9 +25,25 @@
 )
 
 
-;;(:durative-action localize
-;; ...................
-;;)
+;(:durative-action localize
+;	:parameters ()
+;	:duration (= ?duration 1)
+;	:condition (and 
+;		(at start (and 
+;		))
+;		(over all (and 
+;		))
+;		(at end (and 
+;		))
+;	)
+;	:effect (and 
+;		(at start (and 
+;		))
+;		(at end (and 
+;		))
+;	)
+;)
+
 
 
 

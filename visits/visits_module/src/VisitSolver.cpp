@@ -26,6 +26,7 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <math.h>
 
 #include "armadillo"
 #include <initializer_list>
@@ -34,8 +35,7 @@ using namespace std;
 using namespace arma;
 
 
-
-    //map <string, vector<double> > region_mapping;
+map <string, vector<double> > region_mapping;
 
 extern "C" ExternalSolver* create_object(){
   return new VisitSolver();
@@ -63,10 +63,10 @@ void VisitSolver::loadSolver(string *parameters, int n){
   affected = list<string>(x,x+1);
   dependencies = list<string>(y,y+2);
 
-  string waypoint_file = "/home/antony/visits/visits_domain/waypoint.txt";
+  string waypoint_file = "/home/alessio/AI_Second_Assignment/visits/visits_domain/waypoint.txt";
   parseWaypoint(waypoint_file);
 
-  string landmark_file = "/home/antony/visits/visits_domain/landmark.txt";
+  string landmark_file = "/home/alessio/AI_Second_Assignment/visits/visits_domain/landmark.txt";
   parseLandmark(landmark_file);
 
 
@@ -80,7 +80,6 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
   map<string, double>::iterator isEnd = initialState.end();
   double dummy;
   double act_cost;
-
 
   map<string, double> trigger;
 
@@ -108,7 +107,7 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
       string to = tmp.substr(3,2);
 
 
-     // localize(from, to);
+      localize(from, to);
 
     }
   }
@@ -174,7 +173,8 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
 
          double VisitSolver::calculateExtern(double external, double total_cost){
        //float random1 = static_cast <float> (rand())/static_cast <float>(RAND_MAX);
-       double cost = 2;//random1;
+       double cost = 20;//random1;
+     // double cost = distance;
        return cost;
      }
 
@@ -235,12 +235,12 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
  }
 
 
-  //void VisitSolver::localize( string from, string to){
-  //} 
+  void VisitSolver::localize( string from, string to){
 
+   // parseParameters(from);
+   // parseParameters(to);
+    vector<double> from_co = waypoint[from];
+    vector<double> to_co = waypoint[from];
 
-
-
-
-
-
+    distance = sqrt(pow(from_co[0] - to_co[0], 2) + pow(from_co[1] - to_co[1], 2));
+  }

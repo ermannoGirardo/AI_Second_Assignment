@@ -1,0 +1,4 @@
+/home/alessio/AI_Second_Assignment/visits/visits_module/build/CMakeFiles/edit_cache.dir
+/home/alessio/AI_Second_Assignment/visits/visits_module/build/CMakeFiles/Visits.dir
+/home/alessio/AI_Second_Assignment/visits/visits_module/build/CMakeFiles/rebuild_cache.dir
+/home/alessio/AI_Second_Assignment/visits/visits_module/build/CMakeFiles/VisitMain.dir

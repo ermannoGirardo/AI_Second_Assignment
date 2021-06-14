@@ -48,9 +48,9 @@ public:
     map<string, vector<string>> region_mapping;
     vector <string> source, target; 
     string starting_position;
-     
-   
-   
+
+    double distance;
+
     void parseParameters(string parameters);
  
 
@@ -59,7 +59,7 @@ private:
     list<string> dependencies;
       
     double calculateExtern(double external, double total_cost);
-    //void localize(string from, string to);
+    void localize(string from, string to);
     vector<string> findParameters(string line, int&n);
 
 };
