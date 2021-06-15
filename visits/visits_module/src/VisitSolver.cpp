@@ -173,8 +173,8 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
 
          double VisitSolver::calculateExtern(double external, double total_cost){
        //float random1 = static_cast <float> (rand())/static_cast <float>(RAND_MAX);
-       double cost = 20;//random1;
-     // double cost = distance;
+     //  double cost = 20;//random1;
+      double cost = distance;
        return cost;
      }
 
@@ -237,10 +237,12 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
 
   void VisitSolver::localize( string from, string to){
 
-   // parseParameters(from);
-   // parseParameters(to);
-    vector<double> from_co = waypoint[from];
-    vector<double> to_co = waypoint[from];
+    vector<string> index_from = region_mapping.at(from);
+    vector<string> index_to = region_mapping.at(to);
+
+    vector<double> from_co = waypoint.at(index_from[0]);
+    vector<double> to_co = waypoint.at(index_to[0]);
 
     distance = sqrt(pow(from_co[0] - to_co[0], 2) + pow(from_co[1] - to_co[1], 2));
+
   }
