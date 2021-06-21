@@ -45,6 +45,8 @@ armadillo
 /home/alessio/AI_Second_Assignment/visits/visits_module/src/armadillo
 initializer_list
 -
+cstdlib
+/home/alessio/AI_Second_Assignment/visits/visits_module/src/cstdlib
 
 /home/alessio/AI_Second_Assignment/visits/visits_module/src/VisitSolver.h
 ExternalSolver.h

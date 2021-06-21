@@ -9,12 +9,13 @@
 
     (= (act-cost) 0)
     (= (dummy) 0)
+    (not_flag)
 
  
 )
 (:goal 
      (and (visited r1)  (visited r2)
-          (visited r3) (visited r4) )
+          (visited r3) (visited r4)(not_flag) )
 )
 (:metric minimize (act-cost) )
 )
