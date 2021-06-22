@@ -50,9 +50,13 @@ public:
     string starting_position;
 
     double distance;
+    double cov_cost;
+
+    string from;
+    string to;
 
     void parseParameters(string parameters);
- 
+    void startEKF(string from, string to);
 
 private:
     list<string> affected;

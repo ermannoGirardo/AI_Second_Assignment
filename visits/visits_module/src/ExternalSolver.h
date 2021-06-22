@@ -43,7 +43,6 @@ public:
     static list<string> parameters;
     static list<string> dependencies;
     static bool verbose;
-    void startEKF();
 };
 
 #endif // EXTERNALSOLVER_H

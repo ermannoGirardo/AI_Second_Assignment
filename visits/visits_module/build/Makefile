@@ -199,6 +199,36 @@ VisitSolver.cpp.s:
 	$(MAKE) -f CMakeFiles/VisitMain.dir/build.make CMakeFiles/VisitMain.dir/VisitSolver.cpp.s
 .PHONY : VisitSolver.cpp.s
 
+kalman_filter.o: kalman_filter.cpp.o
+
+.PHONY : kalman_filter.o
+
+# target to build an object file
+kalman_filter.cpp.o:
+	$(MAKE) -f CMakeFiles/Visits.dir/build.make CMakeFiles/Visits.dir/kalman_filter.cpp.o
+	$(MAKE) -f CMakeFiles/VisitMain.dir/build.make CMakeFiles/VisitMain.dir/kalman_filter.cpp.o
+.PHONY : kalman_filter.cpp.o
+
+kalman_filter.i: kalman_filter.cpp.i
+
+.PHONY : kalman_filter.i
+
+# target to preprocess a source file
+kalman_filter.cpp.i:
+	$(MAKE) -f CMakeFiles/Visits.dir/build.make CMakeFiles/Visits.dir/kalman_filter.cpp.i
+	$(MAKE) -f CMakeFiles/VisitMain.dir/build.make CMakeFiles/VisitMain.dir/kalman_filter.cpp.i
+.PHONY : kalman_filter.cpp.i
+
+kalman_filter.s: kalman_filter.cpp.s
+
+.PHONY : kalman_filter.s
+
+# target to generate assembly for a file
+kalman_filter.cpp.s:
+	$(MAKE) -f CMakeFiles/Visits.dir/build.make CMakeFiles/Visits.dir/kalman_filter.cpp.s
+	$(MAKE) -f CMakeFiles/VisitMain.dir/build.make CMakeFiles/VisitMain.dir/kalman_filter.cpp.s
+.PHONY : kalman_filter.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -242,6 +272,9 @@ help:
 	@echo "... VisitSolver.o"
 	@echo "... VisitSolver.i"
 	@echo "... VisitSolver.s"
+	@echo "... kalman_filter.o"
+	@echo "... kalman_filter.i"
+	@echo "... kalman_filter.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

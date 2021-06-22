@@ -2,6 +2,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/VisitMain.dir/VisitSolver.cpp.o"
   "CMakeFiles/VisitMain.dir/ExternalSolver.cpp.o"
   "CMakeFiles/VisitMain.dir/main.cpp.o"
+  "CMakeFiles/VisitMain.dir/kalman_filter.cpp.o"
   "VisitMain.pdb"
   "VisitMain"
 )

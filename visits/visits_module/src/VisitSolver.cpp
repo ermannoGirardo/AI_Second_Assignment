@@ -31,10 +31,14 @@
 #include "armadillo"
 #include <initializer_list>
 #include "cstdlib"
+#include "kalman_filter.h"
+
 
 
 using namespace std;
 using namespace arma;
+using Eigen::MatrixXd;
+using Eigen::VectorXd;
 
 
 map <string, vector<double> > region_mapping;
@@ -72,7 +76,8 @@ void VisitSolver::loadSolver(string *parameters, int n){
   parseLandmark(landmark_file);
 
 
-  //startEKF();
+ 
+
 }
 
 map<string,double> VisitSolver::callExternalSolver(map<string,double> initialState,bool isHeuristic){
@@ -105,11 +110,13 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
         trigger[arg] = value>0?1:0;
         if (value>0){
 
-      string from = tmp.substr(0,2);   // from and to are regions, need to extract wps (poses)
-      string to = tmp.substr(3,2);
+       from = tmp.substr(0,2);   // from and to are regions, need to extract wps (poses)
+       to = tmp.substr(3,2);
 
 
       localize(from, to);
+
+      VisitSolver::startEKF(from, to);
 
     }
   }
@@ -177,6 +184,7 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
        //float random1 = static_cast <float> (rand())/static_cast <float>(RAND_MAX);
      //  double cost = 20;//random1;
       double cost = distance;
+      cost += cov_cost;
       return cost;
      }
 
@@ -248,12 +256,174 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     distance = sqrt(pow(from_co[0] - to_co[0], 2) + pow(from_co[1] - to_co[1], 2));
 
   }
-
- /* void startEKF()
+/*
+  void VisitSolver::startEKF()
   {
+    VectorXd x(3);
+    VectorXd alpha1(4);
+    alpha1(0) = 0.05 * 0.05;
+    alpha1(1) = 0.005 * 0.005;
+    alpha1(2) = 0.01 * 0.01;
+    alpha1(3) = 0.01 * 0.01;
+     // alpha = alpha1;
 
-  float P[3][3]={ 0.02, 0, 0,
+    MatrixXd P = MatrixXd(3, 3);
+    MatrixXd F = MatrixXd(3, 3);
+    MatrixXd Q = MatrixXd(3, 3);
+
+    MatrixXd V = MatrixXd(3, 3);
+    MatrixXd M = MatrixXd(3, 3);
+
+    x(0) = waypoint[starting_position].at(0);
+    x(1) = waypoint[starting_position].at(1);
+    x(2) = waypoint[starting_position].at(2);
+
+    P << 0.02, 0, 0,
         0, 0.02, 0,
-        0, 0, 0.02};
+        0, 0, 0.02; //covariance matrix Q on slides
+
+   double cost_function = P(0,0) + P(1,1) + P(2,2);
+
+    V<< -sin(x(2)), cos(x(2)), 0, 
+         cos(x(2)), sin(x(2)), 0,
+         1, 0, 1; //jacobian matrix A of slidessssssssssssssssss
+
+    M << alpha1(1), 0, 0,
+        0, alpha1(2), 0,
+        0, 0, alpha1(1); // errore di misura
+
+    F << 1, 0, -sin(x(2)),
+        0, 1, cos(x(2)),
+        0, 0, 1;
+
+    Q << V * M * V.transpose();
+    //kalman
   }
   */
+  
+/*
+ void VisitSolver::startEKF()
+ {
+   KalmanFilter kalman;
+
+    kalman.x_(0) = waypoint[starting_position].at(0);
+    kalman.x_(1) = waypoint[starting_position].at(1);
+    kalman.x_(2) = waypoint[starting_position].at(2);
+
+    VectorXd alpha1(4);
+    alpha1(0) = 0.05 * 0.05;
+    alpha1(1) = 0.005 * 0.005;
+    alpha1(2) = 0.01 * 0.01;
+    alpha1(3) = 0.01 * 0.01;
+
+   kalman.F_<<-sin(kalman.x_(2)), cos(kalman.x_(2)), 0, 
+         cos(kalman.x_(2)), sin(kalman.x_(2)), 0,
+         1, 0, 1;
+   
+    kalman.P_ << 0.02, 0, 0,
+        0, 0.02, 0,
+        0, 0, 0.02; //covariance matrix Q on slides
+
+    kalman.H_<<alpha1(1), 0, 0,
+        0, alpha1(2), 0,
+        0, 0, alpha1(1); // errore di misura
+
+    kalman.Q_ << kalman.F_ * kalman.H_ * kalman.F_.transpose();
+   
+
+   kalman.x_ = kalman.F_ * kalman.x_;
+   //Update the covariance matrix using the process noise and state transition matrix
+   MatrixXd Ft = kalman.F_.transpose();
+   kalman.P_ = kalman.F_ * kalman.P_ * Ft + kalman.Q_;
+
+   //Update cost
+   cov_cost = kalman.P_(0, 0) + kalman.P_(1, 1) + kalman.P_(2, 2);
+
+   MatrixXd Ht = kalman.H_.transpose();
+   MatrixXd PHt = kalman.P_ * Ht;
+
+   VectorXd y = kalman.x_ - kalman.H_ * kalman.x_;
+
+   MatrixXd S = kalman.H_ * PHt + kalman.H_;
+   MatrixXd K = PHt * S.inverse();
+
+    //Update state vector
+   kalman.x_ = kalman.x_ + (K * y);
+
+   //Update covariance matrix
+   long x_size = kalman.x_.size();
+   MatrixXd I = MatrixXd::Identity(x_size, x_size);
+
+   kalman.P_ = (I - K * kalman.H_) * kalman.P_;
+
+ }
+ */
+
+ void VisitSolver::startEKF(string from, string to)
+ {
+
+   MatrixXd F_(3, 3);
+   MatrixXd P_(3, 3);
+   MatrixXd H_(3, 3);
+   MatrixXd Q_(3, 3);
+   MatrixXd R_(3, 3);
+
+   VectorXd x_(3);
+
+   vector<string> index_from = region_mapping.at(from);
+   vector<double> from_co = waypoint.at(index_from[0]);
+
+   //Initial state vector
+    x_(0) = from_co[0];
+    x_(1) = from_co[1];
+    x_(2) = from_co[2];
+
+   VectorXd alpha1(4);
+    alpha1(0) = 0.5 * 0.5;
+    alpha1(1) = 0.05 * 0.05;
+    alpha1(2) = 0.1 * 0.1;
+    alpha1(3) = 0.1 * 0.1;
+
+   KalmanFilter kalman;
+
+//Jacobian matrix 
+    H_<<-sin(x_(2)), cos(x_(2)), 0, 
+            cos(x_(2)), sin(x_(2)), 0,
+            1, 0, 1;
+
+//Initial covariance matrix
+    P_ << 0.02, 0, 0,
+            0, 0.02, 0,
+            0, 0, 0.02; //covariance matrix Q on slides
+
+//Process noise covariance matrix
+    R_<<alpha1(1), 0, 0,
+            0, alpha1(2), 0,
+            0, 0, alpha1(1); // errore di misura
+
+//Transition matrix
+    F_<< 1, 0, -sin(x_(2)),
+        0, 1, cos(x_(2)),
+        0, 0, 1;
+
+  Q_ << H_ * R_ * H_.transpose();
+
+    kalman.Init(x_, P_, F_, H_, R_, Q_);
+
+//Update x_ and P_
+    kalman.Predict();
+
+    vector<string> index_to = region_mapping.at(to);
+    vector<double> to_co = waypoint.at(index_to[0]);
+
+    VectorXd z(3);
+
+    z(0) = to_co[0];
+    z(1) = to_co[1];
+    z(2) = to_co[2];
+
+    kalman.Update(z);
+    kalman.UpdateEKF(z);
+
+    cov_cost = kalman.P_(0,0) + kalman.P_(1,1) + kalman.P_(2,2);
+ }

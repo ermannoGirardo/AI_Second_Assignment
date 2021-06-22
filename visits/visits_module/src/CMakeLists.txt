@@ -11,6 +11,7 @@ set(CMAKE_CXX_FLAGS "-Wall -std=gnu++11 ${CMAKE_CXX_FLAGS}")
 
 
 
-add_library(Visits SHARED VisitSolver.cpp ExternalSolver.cpp)
-add_executable(VisitMain VisitSolver.cpp ExternalSolver.cpp main.cpp)
+add_library(Visits SHARED VisitSolver.cpp ExternalSolver.cpp kalman_filter.cpp)
+add_executable(VisitMain VisitSolver.cpp ExternalSolver.cpp main.cpp kalman_filter.cpp)
+
 
