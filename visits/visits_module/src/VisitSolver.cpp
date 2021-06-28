@@ -76,8 +76,6 @@ void VisitSolver::loadSolver(string *parameters, int n){
   parseLandmark(landmark_file);
 
 
- 
-
 }
 
 map<string,double> VisitSolver::callExternalSolver(map<string,double> initialState,bool isHeuristic){
@@ -185,6 +183,7 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
      //  double cost = 20;//random1;
       double cost = distance;
       cost += cov_cost;
+
       return cost;
      }
 
@@ -256,108 +255,7 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
     distance = sqrt(pow(from_co[0] - to_co[0], 2) + pow(from_co[1] - to_co[1], 2));
 
   }
-/*
-  void VisitSolver::startEKF()
-  {
-    VectorXd x(3);
-    VectorXd alpha1(4);
-    alpha1(0) = 0.05 * 0.05;
-    alpha1(1) = 0.005 * 0.005;
-    alpha1(2) = 0.01 * 0.01;
-    alpha1(3) = 0.01 * 0.01;
-     // alpha = alpha1;
 
-    MatrixXd P = MatrixXd(3, 3);
-    MatrixXd F = MatrixXd(3, 3);
-    MatrixXd Q = MatrixXd(3, 3);
-
-    MatrixXd V = MatrixXd(3, 3);
-    MatrixXd M = MatrixXd(3, 3);
-
-    x(0) = waypoint[starting_position].at(0);
-    x(1) = waypoint[starting_position].at(1);
-    x(2) = waypoint[starting_position].at(2);
-
-    P << 0.02, 0, 0,
-        0, 0.02, 0,
-        0, 0, 0.02; //covariance matrix Q on slides
-
-   double cost_function = P(0,0) + P(1,1) + P(2,2);
-
-    V<< -sin(x(2)), cos(x(2)), 0, 
-         cos(x(2)), sin(x(2)), 0,
-         1, 0, 1; //jacobian matrix A of slidessssssssssssssssss
-
-    M << alpha1(1), 0, 0,
-        0, alpha1(2), 0,
-        0, 0, alpha1(1); // errore di misura
-
-    F << 1, 0, -sin(x(2)),
-        0, 1, cos(x(2)),
-        0, 0, 1;
-
-    Q << V * M * V.transpose();
-    //kalman
-  }
-  */
-  
-/*
- void VisitSolver::startEKF()
- {
-   KalmanFilter kalman;
-
-    kalman.x_(0) = waypoint[starting_position].at(0);
-    kalman.x_(1) = waypoint[starting_position].at(1);
-    kalman.x_(2) = waypoint[starting_position].at(2);
-
-    VectorXd alpha1(4);
-    alpha1(0) = 0.05 * 0.05;
-    alpha1(1) = 0.005 * 0.005;
-    alpha1(2) = 0.01 * 0.01;
-    alpha1(3) = 0.01 * 0.01;
-
-   kalman.F_<<-sin(kalman.x_(2)), cos(kalman.x_(2)), 0, 
-         cos(kalman.x_(2)), sin(kalman.x_(2)), 0,
-         1, 0, 1;
-   
-    kalman.P_ << 0.02, 0, 0,
-        0, 0.02, 0,
-        0, 0, 0.02; //covariance matrix Q on slides
-
-    kalman.H_<<alpha1(1), 0, 0,
-        0, alpha1(2), 0,
-        0, 0, alpha1(1); // errore di misura
-
-    kalman.Q_ << kalman.F_ * kalman.H_ * kalman.F_.transpose();
-   
-
-   kalman.x_ = kalman.F_ * kalman.x_;
-   //Update the covariance matrix using the process noise and state transition matrix
-   MatrixXd Ft = kalman.F_.transpose();
-   kalman.P_ = kalman.F_ * kalman.P_ * Ft + kalman.Q_;
-
-   //Update cost
-   cov_cost = kalman.P_(0, 0) + kalman.P_(1, 1) + kalman.P_(2, 2);
-
-   MatrixXd Ht = kalman.H_.transpose();
-   MatrixXd PHt = kalman.P_ * Ht;
-
-   VectorXd y = kalman.x_ - kalman.H_ * kalman.x_;
-
-   MatrixXd S = kalman.H_ * PHt + kalman.H_;
-   MatrixXd K = PHt * S.inverse();
-
-    //Update state vector
-   kalman.x_ = kalman.x_ + (K * y);
-
-   //Update covariance matrix
-   long x_size = kalman.x_.size();
-   MatrixXd I = MatrixXd::Identity(x_size, x_size);
-
-   kalman.P_ = (I - K * kalman.H_) * kalman.P_;
-
- }
- */
 
  void VisitSolver::startEKF(string from, string to)
  {
@@ -367,6 +265,7 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
    MatrixXd H_(3, 3);
    MatrixXd Q_(3, 3);
    MatrixXd R_(3, 3);
+  // MatrixXd Error(3, 3);
 
    VectorXd x_(3);
 
@@ -386,44 +285,109 @@ map<string,double> VisitSolver::callExternalSolver(map<string,double> initialSta
 
    KalmanFilter kalman;
 
-//Jacobian matrix 
-    H_<<-sin(x_(2)), cos(x_(2)), 0, 
-            cos(x_(2)), sin(x_(2)), 0,
-            1, 0, 1;
+   vector<double> z_nearest = nearestLandmark(from);
 
-//Initial covariance matrix
-    P_ << 0.02, 0, 0,
-            0, 0.02, 0,
-            0, 0, 0.02; //covariance matrix Q on slides
+   VectorXd z(3);
 
-//Process noise covariance matrix
-    R_<<alpha1(1), 0, 0,
-            0, alpha1(2), 0,
-            0, 0, alpha1(1); // errore di misura
+   z(0) = z_nearest[0];
+   z(1) = z_nearest[1];
+   z(2) = 0; //We have only 2 components
 
-//Transition matrix
-    F_<< 1, 0, -sin(x_(2)),
-        0, 1, cos(x_(2)),
-        0, 0, 1;
+   H_ << -((z_nearest[2] - x_[0]) / z_nearest[0]), -((z_nearest[3] - x_[1]) / z_nearest[0]), 0,
+       ((z_nearest[3] - x_[1]) / pow(z_nearest[0], 2)), -((z_nearest[2] - x_[0]) / pow(z_nearest[0], 2)), -1, 
+       0, 0, 0;
 
-  Q_ << H_ * R_ * H_.transpose();
+   //Initial covariance matrix
+   P_ << 0.02, 0, 0,
+       0, 0.02, 0,
+       0, 0, 0.02; //covariance matrix Q on slides
 
-    kalman.Init(x_, P_, F_, H_, R_, Q_);
+   //Process noise covariance matrix
+   R_ << alpha1(1), 0, 0,
+       0, alpha1(2), 0,
+       0, 0, alpha1(1); // errore di misura
 
-//Update x_ and P_
-    kalman.Predict();
+   //Transition matrix
+   F_ << 1, 0, -sin(x_(2)),
+       0, 1, cos(x_(2)),
+       0, 0, 1;
 
-    vector<string> index_to = region_mapping.at(to);
-    vector<double> to_co = waypoint.at(index_to[0]);
 
-    VectorXd z(3);
+   Q_ << H_ * R_ * H_.transpose();
 
-    z(0) = to_co[0];
-    z(1) = to_co[1];
-    z(2) = to_co[2];
+   kalman.Init(x_, P_, F_, H_, R_, Q_);
 
-    kalman.Update(z);
-    kalman.UpdateEKF(z);
+   vector<string> index_to = region_mapping.at(to);
+   vector<double> to_co = waypoint.at(index_to[0]);
 
-    cov_cost = kalman.P_(0,0) + kalman.P_(1,1) + kalman.P_(2,2);
+   z_nearest = nearestLandmark(to);
+
+   double mean = 0;
+   double gaus_stddev = 0.5;
+   std::default_random_engine generator;
+   std::normal_distribution<double> gaussian(mean, gaus_stddev);
+
+   for (int i = 0; i < 25; i++)
+   {
+     z(0) += gaussian(generator);
+     z(1) += gaussian(generator);
+   }
+
+   //Update x_ and P_
+   kalman.Predict();
+
+   kalman.Update(z);
+
+   kalman.UpdateEKF(z);
+
+   cov_cost = kalman.P_(0, 0) + kalman.P_(1, 1) + kalman.P_(2, 2);
+ }
+
+
+
+ vector<double> VisitSolver::nearestLandmark(string is)
+ {
+   vector<double> nearest_landmark;
+   VectorXd distances(4);
+
+   vector<string> index_is = region_mapping.at(is);
+
+    vector<double> is_vector = waypoint.at(index_is[0]);
+
+    double distance = sqrt(pow(is_vector[0] - landmark.at("l1")[0], 2) + pow(is_vector[1] - landmark.at("l1")[1], 2));
+    distances(0) = distance;
+    distance = sqrt(pow(is_vector[0] - landmark.at("l2")[0], 2) + pow(is_vector[1] - landmark.at("l2")[1], 2));
+    distances(1) = distance;
+    distance = sqrt(pow(is_vector[0] - landmark.at("l3")[0], 2) + pow(is_vector[1] - landmark.at("l3")[1], 2));
+    distances(2) = distance;
+    distance = sqrt(pow(is_vector[0] - landmark.at("l4")[0], 2) + pow(is_vector[1] - landmark.at("l4")[1], 2));
+    distances(3) = distance;
+
+    double minimum=distances[0];
+    int j = 0;
+
+    for (int i = 0; i < 3; i++)
+    {
+      if(distances[i]>distances[i+1])
+      {
+        minimum = distances[i + 1];
+        j = i + 1;
+      }
+    }
+
+    //Distance
+    nearest_landmark.push_back(distances[j]);
+    //Compute the variation of the orientation
+    double angle = atan2(landmark.at("l" + std::to_string(j + 1))[1] - is_vector[1], landmark.at("l" + std::to_string(j + 1))[0] - is_vector[0]);
+
+    //Bearing
+    nearest_landmark.push_back(angle);
+
+    //Append the x coordinate of the nearest landmark
+    nearest_landmark.push_back(landmark.at("l" + std::to_string(j + 1))[0]);
+
+    //Append the y coordinate of the nearest landmark
+    nearest_landmark.push_back(landmark.at("l" + std::to_string(j + 1))[1]);
+
+    return nearest_landmark;
  }

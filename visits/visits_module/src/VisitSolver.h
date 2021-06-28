@@ -57,6 +57,7 @@ public:
 
     void parseParameters(string parameters);
     void startEKF(string from, string to);
+    vector<double> nearestLandmark(string is);
 
 private:
     list<string> affected;
@@ -65,7 +66,7 @@ private:
     double calculateExtern(double external, double total_cost);
     void localize(string from, string to);
     vector<string> findParameters(string line, int&n);
-
+    
 };
 
 #endif // TESTSOLVER_H
